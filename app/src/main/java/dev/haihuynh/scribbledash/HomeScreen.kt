@@ -89,6 +89,7 @@ fun GameMode(
                 text = "One Round Wonder",
                 fontFamily = BagelFatOne,
                 fontSize = 26.sp,
+                lineHeight = 32.sp,
                 modifier = Modifier.weight(1f)
                     .padding(vertical = 16.dp)
                     .padding(start = 24.dp)
