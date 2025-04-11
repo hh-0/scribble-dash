@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -102,6 +103,59 @@ fun GameMode(
                     contentDescription = null
                 )
             }
+        }
+    }
+    GameLevel()
+}
+
+@Composable
+private fun GameLevel(
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier.clip(CircleShape).size(128.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.beginner_level),
+                    contentDescription = null
+                )
+            }
+            Text("Beginner")
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier.clip(CircleShape).size(128.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.challenging_level),
+                    contentDescription = null
+                )
+            }
+            Text("Challenging")
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier.clip(CircleShape).size(128.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.master_level),
+                    contentDescription = null
+                )
+            }
+            Text("Master")
         }
     }
 }
