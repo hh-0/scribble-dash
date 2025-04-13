@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -178,68 +180,78 @@ private fun DrawingCanvas(
     onAction: (DrawingAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Canvas(
+    Surface(
         modifier = modifier
-            .padding(16.dp)
+            .fillMaxWidth()
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(16.dp))
-            .clipToBounds()
-            .background(Color.LightGray)
-            .pointerInput(true) {
-                detectDragGestures(
-                    onDragStart = {
-                        onAction(DrawingAction.OnNewPathStart)
-                    },
-                    onDragEnd = {
-                        onAction(DrawingAction.OnPathEnd)
-                    },
-                    onDrag = { change, _ ->
-                        onAction(DrawingAction.OnDraw(change.position))
-                    },
-                )
-            }.drawBehind {
-                val cellWidth = size.width / 3
-                val cellHeight = size.height / 3
+            .padding(16.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White,
+        shadowElevation = 4.dp
+    ) {
+        Canvas(
+            modifier = modifier
+                .padding(12.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .clipToBounds()
+                .border(width = 1.dp, color = Color.Black.copy(alpha = 0.05f), shape = RoundedCornerShape(16.dp))
+                .background(Color.White)
+                .pointerInput(true) {
+                    detectDragGestures(
+                        onDragStart = {
+                            onAction(DrawingAction.OnNewPathStart)
+                        },
+                        onDragEnd = {
+                            onAction(DrawingAction.OnPathEnd)
+                        },
+                        onDrag = { change, _ ->
+                            onAction(DrawingAction.OnDraw(change.position))
+                        },
+                    )
+                }.drawBehind {
+                    val cellWidth = size.width / 3
+                    val cellHeight = size.height / 3
 
-                // Draw horizontal lines
-                drawLine(
-                    color = Color.Magenta,
-                    start = Offset(x = 0f, y = cellHeight),
-                    end = Offset(x = size.width, y = cellHeight),
-                    strokeWidth = 2f
-                )
-                drawLine(
-                    color = Color.Magenta,
-                    start = Offset(x = 0f, y = cellHeight * 2),
-                    end = Offset(x = size.width, y = cellHeight * 2),
-                    strokeWidth = 2f
-                )
-                // Draw vertical lines
-                drawLine(
-                    color = Color.Black,
-                    start = Offset(x = cellWidth, y = 0f),
-                    end = Offset(x = cellWidth, y = size.height),
-                    strokeWidth = 2f
-                )
-                drawLine(
-                    color = Color.Black,
-                    start = Offset(x = cellWidth * 2, y = 0f),
-                    end = Offset(x = cellWidth * 2, y = size.height),
-                    strokeWidth = 2f
+                    // Draw horizontal lines
+                    drawLine(
+                        color = Color.Black.copy(alpha = 0.05f),
+                        start = Offset(x = 0f, y = cellHeight),
+                        end = Offset(x = size.width, y = cellHeight),
+                        strokeWidth = 2f
+                    )
+                    drawLine(
+                        color = Color.Black.copy(alpha = 0.05f),
+                        start = Offset(x = 0f, y = cellHeight * 2),
+                        end = Offset(x = size.width, y = cellHeight * 2),
+                        strokeWidth = 2f
+                    )
+                    // Draw vertical lines
+                    drawLine(
+                        color = Color.Black.copy(alpha = 0.05f),
+                        start = Offset(x = cellWidth, y = 0f),
+                        end = Offset(x = cellWidth, y = size.height),
+                        strokeWidth = 2f
+                    )
+                    drawLine(
+                        color = Color.Black.copy(alpha = 0.05f),
+                        start = Offset(x = cellWidth * 2, y = 0f),
+                        end = Offset(x = cellWidth * 2, y = size.height),
+                        strokeWidth = 2f
+                    )
+                }
+        ) {
+            paths.fastForEach { pathData ->
+                drawPath(
+                    path = pathData.path,
+                    color = pathData.color
                 )
             }
-    ) {
-        paths.fastForEach { pathData ->
-            drawPath(
-                path = pathData.path,
-                color = pathData.color
-            )
-        }
-        currentPath?.let {
-            drawPath(
-                path = it.path,
-                color = it.color
-            )
+            currentPath?.let {
+                drawPath(
+                    path = it.path,
+                    color = it.color
+                )
+            }
         }
     }
 }
