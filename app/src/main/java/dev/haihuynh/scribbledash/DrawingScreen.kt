@@ -80,7 +80,9 @@ private fun DrawingScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
-                    onClick = {}
+                    onClick = {
+                        onAction(DrawingAction.OnUndo)
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Default.Undo,
@@ -88,7 +90,9 @@ private fun DrawingScreen(
                     )
                 }
                 Button(
-                    onClick = {}
+                    onClick = {
+                        onAction(DrawingAction.OnRedo)
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Default.Redo,

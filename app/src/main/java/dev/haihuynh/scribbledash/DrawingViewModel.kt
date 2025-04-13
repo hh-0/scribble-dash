@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.update
 data class DrawingState(
     val selectedColor: Color = Color.Black,
     val currentPath: PathData? = null,
-    val paths: List<PathData> = emptyList()
+    val paths: List<PathData> = emptyList(),
+    val undoPaths: List<PathData> = emptyList()
 )
 
 data class PathData(
@@ -46,11 +47,39 @@ class DrawingViewModel: ViewModel() {
     }
 
     private fun onUndo() {
-        TODO("Not yet implemented")
+        if (state.value.paths.isEmpty()) return
+
+        val droppedPath = state.value.paths.last()
+        val updatedPaths = state.value.paths.dropLast(1)
+        val undoPaths = if (state.value.undoPaths.size > 4) {
+            state.value.undoPaths.drop(1) + droppedPath
+        } else {
+            state.value.undoPaths + droppedPath
+        }
+
+        _state.update {
+            it.copy(
+                currentPath = null,
+                paths = updatedPaths,
+                undoPaths = undoPaths
+            )
+        }
     }
 
     private fun onRedo() {
-        TODO("Not yet implemented")
+        if (state.value.undoPaths.isEmpty()) return
+
+        val redoPath = state.value.undoPaths.last()
+        val updatedPaths = state.value.paths + redoPath
+        val undoPaths = state.value.undoPaths.dropLast(1)
+
+        _state.update {
+            it.copy(
+                currentPath = null,
+                paths = updatedPaths,
+                undoPaths = undoPaths
+            )
+        }
     }
 
     private fun onPathEnd() {
