@@ -101,12 +101,15 @@ private fun DrawingScreen(
                     modifier = Modifier
                         .size(64.dp)
                         .background(
-                            color = if (isUndoButtonEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                            color = if (isRedoButtonEnabled)
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                             shape = RoundedCornerShape(24.dp)
                         ),
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onPrimary, // Color when enabled
-                        disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.4f) // Color when disabled
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f), // Color when enabled
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) // Color when disabled
                     ),
                     onClick = {
                         onAction(DrawingAction.OnUndo)
@@ -122,12 +125,15 @@ private fun DrawingScreen(
                 IconButton(modifier = Modifier
                     .size(64.dp)
                     .background(
-                        color = if (isRedoButtonEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        color = if (isRedoButtonEnabled)
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                         shape = RoundedCornerShape(24.dp)
                     ),
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.4f)
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                     ),
                     onClick = {
                         onAction(DrawingAction.OnRedo)
