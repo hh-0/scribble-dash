@@ -48,7 +48,9 @@ fun ScribbleDashTopAppBarExitButton(
         horizontalArrangement = Arrangement.End
     ) {
         IconButton(
-            onClick = {}
+            onClick = {
+                onExit()
+            }
         ) {
             Image(
                 painter = painterResource(R.drawable.exit_icon),

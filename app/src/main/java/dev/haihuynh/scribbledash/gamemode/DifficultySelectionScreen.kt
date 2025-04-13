@@ -28,17 +28,26 @@ import dev.haihuynh.scribbledash.R
 import dev.haihuynh.scribbledash.components.ScribbleDashTopAppBarExitButton
 
 @Composable
-fun DifficultySelectionScreenRoot() {
-    DifficultySelectionScreen()
+fun DifficultySelectionScreenRoot(
+    onExit: () -> Unit = {},
+    onLevelSelect: (String) -> Unit = {}
+) {
+    DifficultySelectionScreen(
+        onExit = onExit,
+        onLevelSelect = onLevelSelect
+    )
 }
 
 @Composable
-private fun DifficultySelectionScreen() {
+private fun DifficultySelectionScreen(
+    onExit: () -> Unit = {},
+    onLevelSelect: (String) -> Unit = {}
+) {
     Scaffold(
         topBar = {
             ScribbleDashTopAppBarExitButton(
                 onExit = {
-
+                    onExit()
                 }
             )
         }
@@ -59,7 +68,9 @@ private fun DifficultySelectionScreen() {
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(Modifier.height(48.dp))
-            GameLevel()
+            GameLevel(
+                onLevelSelect = onLevelSelect
+            )
         }
     }
 }

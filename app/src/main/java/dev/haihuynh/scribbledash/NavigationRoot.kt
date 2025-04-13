@@ -23,7 +23,14 @@ fun NavigationRoot(
             )
         }
         composable(route = "difficulty_selection") {
-            DifficultySelectionScreenRoot()
+            DifficultySelectionScreenRoot(
+                onExit = {
+                    navController.popBackStack()
+                },
+                onLevelSelect = { level ->
+                    navController.navigate("drawing")
+                }
+            )
         }
         composable(route = "drawing") {
             DrawingScreenRoot()
