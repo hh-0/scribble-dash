@@ -11,6 +11,7 @@ class ScribbleDashApp: Application() {
 
         startKoin {
             androidContext(this@ScribbleDashApp)
+            modules(appModule)
         }
     }
 }
