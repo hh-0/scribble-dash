@@ -58,25 +58,30 @@ import kotlin.math.abs
 
 @Composable
 fun DrawingScreenRoot(
+    onExit: () -> Unit = {},
     viewModel: DrawingViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     DrawingScreen(
         state = state,
-        onAction = viewModel::onAction
+        onAction = viewModel::onAction,
+        onExit = onExit
     )
 }
 
 @Composable
 private fun DrawingScreen(
     state: DrawingState,
-    onAction: (DrawingAction) -> Unit = {}
+    onAction: (DrawingAction) -> Unit = {},
+    onExit: () -> Unit = {}
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             ScribbleDashTopAppBarExitButton(
-                onExit = {}
+                onExit = {
+                    onExit()
+                }
             )
         },
         bottomBar = {

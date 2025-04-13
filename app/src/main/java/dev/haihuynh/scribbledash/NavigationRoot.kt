@@ -33,7 +33,11 @@ fun NavigationRoot(
             )
         }
         composable(route = "drawing") {
-            DrawingScreenRoot()
+            DrawingScreenRoot(
+                onExit = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
