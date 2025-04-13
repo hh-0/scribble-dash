@@ -1,4 +1,4 @@
-package dev.haihuynh.scribbledash
+package dev.haihuynh.scribbledash.drawing
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color

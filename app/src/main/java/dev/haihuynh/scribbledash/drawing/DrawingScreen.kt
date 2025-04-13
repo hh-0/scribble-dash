@@ -1,4 +1,4 @@
-package dev.haihuynh.scribbledash
+package dev.haihuynh.scribbledash.drawing
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.haihuynh.scribbledash.R
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.abs
 
