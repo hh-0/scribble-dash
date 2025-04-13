@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.haihuynh.scribbledash.R
+import dev.haihuynh.scribbledash.components.ScribbleDashTopAppBarExitButton
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.abs
 
@@ -74,23 +75,9 @@ private fun DrawingScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .windowInsetsPadding(WindowInsets.statusBars)
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
-            ) {
-                IconButton(
-                    onClick = {}
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.exit_icon),
-                        contentDescription = null
-                    )
-                }
-            }
+            ScribbleDashTopAppBarExitButton(
+                onExit = {}
+            )
         },
         bottomBar = {
             Row(

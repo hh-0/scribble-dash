@@ -2,6 +2,7 @@ package dev.haihuynh.scribbledash
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,7 +61,10 @@ private fun HomeScreen() {
             GameMode(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                onGameModeSelect = { gameMode ->
+
+                }
             )
         }
     }
@@ -68,7 +72,8 @@ private fun HomeScreen() {
 
 @Composable
 fun GameMode(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onGameModeSelect: (String) -> Unit = {}
 ) {
     Box(
         modifier = modifier
@@ -77,6 +82,11 @@ fun GameMode(
                 8.dp,
                 Color(0xFF0DD280),
                 RoundedCornerShape(16.dp)
+            )
+            .clickable(
+                onClick = {
+                    onGameModeSelect("One Round Wonder")
+                }
             )
     ) {
         Row(
@@ -97,68 +107,6 @@ fun GameMode(
                     contentDescription = null
                 )
             }
-        }
-    }
-    GameLevel()
-}
-
-@Composable
-private fun GameLevel(
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Box(
-                modifier = Modifier.clip(CircleShape).size(128.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.beginner_level),
-                    contentDescription = null
-                )
-            }
-            Text(
-                text = "Beginner",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
-            )
-        }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Box(
-                modifier = Modifier.clip(CircleShape).size(128.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.challenging_level),
-                    contentDescription = null
-                )
-            }
-            Text(
-                text = "Challenging",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
-            )
-        }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Box(
-                modifier = Modifier.clip(CircleShape).size(128.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.master_level),
-                    contentDescription = null
-                )
-            }
-            Text(
-                text = "Master",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
-            )
         }
     }
 }
