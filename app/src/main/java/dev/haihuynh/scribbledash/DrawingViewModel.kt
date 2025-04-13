@@ -123,7 +123,8 @@ class DrawingViewModel: ViewModel() {
         _state.update {
             it.copy(
                 currentPath = null,
-                paths = emptyList()
+                paths = emptyList(),
+                undoPaths = emptyList()
             )
         }
     }

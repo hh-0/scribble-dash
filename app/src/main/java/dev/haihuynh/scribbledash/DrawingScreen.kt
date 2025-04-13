@@ -103,7 +103,8 @@ private fun DrawingScreen(
                 }
                 Button(
                     modifier = Modifier,
-                    onClick = { onAction(DrawingAction.OnClearCanvasClick) }
+                    onClick = { onAction(DrawingAction.OnClearCanvasClick) },
+                    enabled = state.paths.isNotEmpty()
                 ) {
                     Text("Clear Canvas")
                 }
