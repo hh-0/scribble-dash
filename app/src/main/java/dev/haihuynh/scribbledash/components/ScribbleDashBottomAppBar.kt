@@ -8,9 +8,9 @@ import androidx.compose.material.icons.rounded.InsertChart
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dev.haihuynh.scribbledash.R
@@ -18,6 +18,7 @@ import dev.haihuynh.scribbledash.R
 @Composable
 fun ScribbleDashBottomAppBar() {
     BottomAppBar(
+        containerColor = Color.White,
         actions = {
             IconButton(
                 onClick = { },
