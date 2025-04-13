@@ -44,6 +44,12 @@ val Typography = Typography(
         lineHeight = 32.sp,
         color = Color(0xFF514437),
     ),
+    headlineSmall = TextStyle(
+        fontFamily = BagelFatOne,
+        fontSize = 18.sp,
+        lineHeight = 26.sp,
+        color = Color(0xFF514437),
+    ),
     titleLarge = TextStyle(
         fontFamily = OutFit,
         fontWeight = FontWeight.Normal,
