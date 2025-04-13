@@ -32,12 +32,18 @@ import dev.haihuynh.scribbledash.components.ScribbleDashTopAppBar
 import dev.haihuynh.scribbledash.ui.theme.ScribbleDashTheme
 
 @Composable
-fun HomeScreenRoot() {
-    HomeScreen()
+fun HomeScreenRoot(
+    onGameModeSelect: (String) -> Unit = {}
+) {
+    HomeScreen(
+        onGameModeSelect = onGameModeSelect
+    )
 }
 
 @Composable
-private fun HomeScreen() {
+private fun HomeScreen(
+    onGameModeSelect: (String) -> Unit = {}
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { ScribbleDashTopAppBar() },
@@ -63,7 +69,7 @@ private fun HomeScreen() {
                     .fillMaxWidth()
                     .padding(16.dp),
                 onGameModeSelect = { gameMode ->
-
+                    onGameModeSelect(gameMode)
                 }
             )
         }
