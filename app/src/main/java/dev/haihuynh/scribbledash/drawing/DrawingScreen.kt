@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.haihuynh.scribbledash.R
+import dev.haihuynh.scribbledash.components.GradientBackground
 import dev.haihuynh.scribbledash.components.ScribbleDashTopAppBarExitButton
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.abs
@@ -165,23 +166,25 @@ private fun DrawingScreen(
 
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .padding(innerPadding)
-                .padding(bottom = 64.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Time to draw!",
-                style = MaterialTheme.typography.headlineLarge
-            )
-            DrawingCanvas(
-                paths = state.paths,
-                currentPath = state.currentPath,
-                onAction = onAction,
-                modifier = Modifier
-            )
+        GradientBackground {
+            Column(
+                modifier = Modifier.fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(bottom = 64.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Time to draw!",
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                DrawingCanvas(
+                    paths = state.paths,
+                    currentPath = state.currentPath,
+                    onAction = onAction,
+                    modifier = Modifier
+                )
+            }
         }
     }
 }

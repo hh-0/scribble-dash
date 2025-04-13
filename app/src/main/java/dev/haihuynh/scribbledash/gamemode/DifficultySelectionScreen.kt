@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.haihuynh.scribbledash.R
+import dev.haihuynh.scribbledash.components.GradientBackground
 import dev.haihuynh.scribbledash.components.ScribbleDashTopAppBarExitButton
 
 @Composable
@@ -52,25 +53,27 @@ private fun DifficultySelectionScreen(
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Spacer(Modifier.height(96.dp))
-            Text(
-                text = "Start drawing!",
-                style = MaterialTheme.typography.headlineLarge
-            )
-            Text(
-                text = "Choose a difficulty setting",
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(Modifier.height(48.dp))
-            GameLevel(
-                onLevelSelect = onLevelSelect
-            )
+        GradientBackground {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(Modifier.height(96.dp))
+                Text(
+                    text = "Start drawing!",
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                Text(
+                    text = "Choose a difficulty setting",
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Spacer(Modifier.height(48.dp))
+                GameLevel(
+                    onLevelSelect = onLevelSelect
+                )
+            }
         }
     }
 }
