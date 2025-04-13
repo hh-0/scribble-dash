@@ -82,7 +82,8 @@ private fun DrawingScreen(
                 Button(
                     onClick = {
                         onAction(DrawingAction.OnUndo)
-                    }
+                    },
+                    enabled = state.paths.isNotEmpty()
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Default.Undo,
@@ -92,7 +93,8 @@ private fun DrawingScreen(
                 Button(
                     onClick = {
                         onAction(DrawingAction.OnRedo)
-                    }
+                    },
+                    enabled = state.undoPaths.isNotEmpty()
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Default.Redo,
