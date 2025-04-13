@@ -98,8 +98,9 @@ class DrawingViewModel: ViewModel() {
                 currentPath = PathData(
                     id = System.currentTimeMillis().toString(),
                     color = it.selectedColor,
-                    path = emptyList()
-                )
+                    path = emptyList(),
+                ),
+                undoPaths = emptyList()
             )
         }
     }
