@@ -107,6 +107,7 @@ class DrawingViewModel: ViewModel() {
 
     private fun onDraw(offset: Offset) {
         val currentPathData = state.value.currentPath ?: return
+        println("Drawing: Current number of points: ${currentPathData.path.size}")
         _state.update {
             it.copy(
                 currentPath = currentPathData.copy(

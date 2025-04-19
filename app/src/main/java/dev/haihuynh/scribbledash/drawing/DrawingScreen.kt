@@ -1,5 +1,8 @@
 package dev.haihuynh.scribbledash.drawing
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.res.XmlResourceParser
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -37,25 +40,41 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import androidx.core.graphics.PathParser
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.haihuynh.scribbledash.R
 import dev.haihuynh.scribbledash.components.GradientBackground
 import dev.haihuynh.scribbledash.components.ScribbleDashTopAppBarExitButton
+import dev.haihuynh.scribbledash.createPathsFromPathData
+import dev.haihuynh.scribbledash.getPathDataFromVectorDrawable
 import org.koin.androidx.compose.koinViewModel
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserException
+import java.io.IOException
+import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.math.abs
+import androidx.compose.ui.platform.LocalDensity
 
 @Composable
 fun DrawingScreenRoot(
@@ -63,6 +82,8 @@ fun DrawingScreenRoot(
     viewModel: DrawingViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val resources = context.resources
     DrawingScreen(
         state = state,
         onAction = viewModel::onAction,
@@ -147,7 +168,9 @@ private fun DrawingScreen(
                     )
                 }
                 Button(
-                    modifier = Modifier.height(64.dp).weight(1f),
+                    modifier = Modifier
+                        .height(64.dp)
+                        .weight(1f),
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF0DD280),
@@ -174,7 +197,8 @@ private fun DrawingScreen(
     ) { innerPadding ->
         GradientBackground {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(innerPadding)
                     .padding(bottom = 64.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -195,6 +219,7 @@ private fun DrawingScreen(
     }
 }
 
+@SuppressLint("ResourceType")
 @Composable
 private fun DrawingCanvas(
     paths: List<PathData>,
@@ -211,12 +236,20 @@ private fun DrawingCanvas(
         color = Color.White,
         shadowElevation = 4.dp
     ) {
+        val context = LocalContext.current
+        val rawPath = getPathDataFromVectorDrawable(context, R.drawable.mountains)
+        val samplePaths = createPathsFromPathData(rawPath)
+
         Canvas(
             modifier = modifier
                 .padding(12.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .clipToBounds()
-                .border(width = 1.dp, color = Color.Black.copy(alpha = 0.05f), shape = RoundedCornerShape(16.dp))
+                .border(
+                    width = 1.dp,
+                    color = Color.Black.copy(alpha = 0.05f),
+                    shape = RoundedCornerShape(16.dp)
+                )
                 .background(Color.White)
                 .pointerInput(true) {
                     detectDragGestures(
@@ -230,7 +263,8 @@ private fun DrawingCanvas(
                             onAction(DrawingAction.OnDraw(change.position))
                         },
                     )
-                }.drawBehind {
+                }
+                .drawBehind {
                     val cellWidth = size.width / 3
                     val cellHeight = size.height / 3
 
@@ -262,6 +296,14 @@ private fun DrawingCanvas(
                     )
                 }
         ) {
+
+            val canvasHeight = size.height
+            val canvasWidth = size.width
+
+
+
+
+
             paths.fastForEach { pathData ->
                 drawPath(
                     path = pathData.path,
@@ -274,14 +316,169 @@ private fun DrawingCanvas(
                     color = it.color
                 )
             }
+
+
+
+            val bounds = calculateBoundsWithStroke(samplePaths, 1f)?.inset(0f)
+            val sampleAspectRatio = bounds!!.width / bounds.height
+            val sampleHeight = bounds.height
+            val sampleWidth = bounds.width
+            bounds.left
+            bounds.top
+            val scaleX = canvasWidth / sampleWidth
+            val scaleY = canvasHeight / sampleHeight
+
+            val scaleFactor = minOf(scaleX, scaleY)
+
+            val scaledDrawingWidth = sampleWidth * scaleFactor
+            val scaledDrawingHeight = sampleHeight * scaleFactor
+
+//            val centerX = (canvasWidth - scaledDrawingWidth) /2f
+//            val centerY = (canvasHeight - scaledDrawingHeight)/ 2f
+
+            println("Bounds height $sampleHeight | Bounds width $sampleWidth")
+            println("Canvas Height $canvasHeight | Canvas Width $canvasWidth")
+            println("Scale factor $scaleFactor | ratioX $scaleX | ratioY $scaleY")
+            println("Scaled drawing height $scaledDrawingHeight | Scaled drawing width $scaledDrawingWidth")
+            withTransform(
+                {
+                    // Centering
+//                    val centerX = (size.width - scaledDrawingWidth)/ 2f
+//                    val centerY = (size.height - scaledDrawingHeight)/ 2f
+//                    println("Center X $centerX | Center Y $centerY")
+//                    translate(centerX, centerY)
+//
+//                    scale(scaleFactor, Offset(0f, 0f))
+//                    translate(-bounds!!.left, -bounds!!.top)
+
+                    translate(-bounds.left * scaleFactor, -bounds.top * scaleFactor)
+//                    scale(1f, 1f)
+                    scale(scaleFactor, scaleFactor, Offset(0f, 0f))
+                }
+
+            ) {
+                samplePaths.fastForEach { samplePath ->
+                    drawPath(
+                        path = samplePath.asComposePath(),
+                        color = Color.Blue,
+                        style = Stroke(
+                            width = 2f,
+                            cap = StrokeCap.Round,
+                            join = StrokeJoin.Round
+                        )
+                    )
+                }
+
+                bounds?.let {
+                    drawRect(
+                        color = Color.Red,
+                        topLeft = it.topLeft,
+                        size = it.size,
+                        style = Stroke(
+                            width = 2f
+                        )
+                    )
+                }
+
+            }
+//            translate(
+//                left = -bounds!!.topLeft.x,
+//                top = -bounds!!.topLeft.y,
+//            ) {
+//            }
+
+
         }
     }
 }
 
-private fun DrawScope.drawPath(
+@Composable
+fun Dp.toPx() = with(LocalDensity.current) { this@toPx.toPx() }
+
+fun Rect.inset(insetPx: Float): Rect {
+    return Rect(
+        left = this.left + insetPx,
+        top = this.top + insetPx,
+        right = this.right - insetPx,
+        bottom = this.bottom - insetPx
+    )
+}
+
+fun calculateBoundsWithStroke(paths: List<android.graphics.Path>, strokeWidth: Float): Rect? {
+    if (paths.isEmpty()) {
+        return null
+    }
+
+    val strokeWidthPx = strokeWidth
+    var minLeft = Float.POSITIVE_INFINITY
+    var minTop = Float.POSITIVE_INFINITY
+    var maxRight = Float.NEGATIVE_INFINITY
+    var maxBottom = Float.NEGATIVE_INFINITY
+
+    for (path in paths) {
+        val pathBounds = path.asComposePath().getBounds()
+        minLeft = minOf(minLeft, pathBounds.left)
+        minTop = minOf(minTop, pathBounds.top)
+        maxRight = maxOf(maxRight, pathBounds.right)
+        maxBottom = maxOf(maxBottom, pathBounds.bottom)
+    }
+
+    if (minLeft == Float.POSITIVE_INFINITY) return null // Handle empty paths case
+
+    // Expand the bounds to account for the stroke width
+    return Rect(
+        left = minLeft - strokeWidthPx / 2f,
+        top = minTop - strokeWidthPx / 2f,
+        right = maxRight + strokeWidthPx / 2f,
+        bottom = maxBottom + strokeWidthPx / 2f
+    )
+}
+
+fun calculateCombinedBounds(paths: List<android.graphics.Path>): Rect? {
+    if (paths.isEmpty()) {
+        return null
+    }
+
+    var minLeft = Float.POSITIVE_INFINITY
+    var minTop = Float.POSITIVE_INFINITY
+    var maxRight = Float.NEGATIVE_INFINITY
+    var maxBottom = Float.NEGATIVE_INFINITY
+
+    for (path in paths) {
+        path.asComposePath()
+        val pathBounds = path.asComposePath().getBounds()
+        minLeft = minOf(minLeft, pathBounds.left)
+        minTop = minOf(minTop, pathBounds.top)
+        maxRight = maxOf(maxRight, pathBounds.right)
+        maxBottom = maxOf(maxBottom, pathBounds.bottom)
+    }
+
+    return Rect(minLeft, minTop, maxRight, maxBottom)
+}
+
+//fun calculateCombinedBounds(paths: List<Path>): Rect? {
+//    if (paths.isEmpty()) {
+//        return null
+//    }
+//
+//    var combinedBounds: Rect? = null
+//
+//    for (path in paths) {
+//        val pathBounds = path.getBounds().
+//        if (combinedBounds == null) {
+//            combinedBounds = pathBounds
+//        } else {
+//            combinedBounds = combinedBounds.expandToInclude(pathBounds)
+//        }
+//    }
+//
+//    return combinedBounds
+//}
+
+fun DrawScope.drawPath(
     path: List<Offset>,
     color: Color,
-    thickness: Float = 10f
+    thickness: Float = 5f
 ) {
     val smoothedPath = Path().apply {
         if (path.isNotEmpty()) {
@@ -314,6 +511,54 @@ private fun DrawScope.drawPath(
             join = StrokeJoin.Round
         )
     )
+}
+
+fun getPathDataFromVectorDrawable(context: Context, drawableResId: Int): List<String> {
+    val pathDataList = mutableListOf<String>()
+    val parser: XmlResourceParser = context.resources.getXml(drawableResId)
+    try {
+        var eventType = parser.eventType
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            if (eventType == XmlPullParser.START_TAG && parser.name == "path") {
+                // Namespace null might be needed depending on how you access attributes
+                val pathData = parser.getAttributeValue("http://schemas.android.com/apk/res/android", "pathData")
+                // Fallback if namespace doesn't work (less reliable)
+                // val pathData = parser.getAttributeValue(null, "android:pathData")
+                if (pathData != null) {
+                    pathDataList.add(pathData)
+                }
+            }
+            eventType = parser.next()
+        }
+    } catch (e: XmlPullParserException) {
+        e.printStackTrace() // Handle errors appropriately
+    } catch (e: IOException) {
+        e.printStackTrace() // Handle errors appropriately
+    } finally {
+        parser.close()
+    }
+    return pathDataList
+}
+
+fun createPathsFromPathData(pathDataList: List<String>): List<android.graphics.Path> {
+    val paths = mutableListOf<android.graphics.Path>()
+    for (pathData in pathDataList) {
+        try {
+            val path = PathParser.createPathFromPathData(pathData)
+            if (path != null) {
+                val transformMatrix = android.graphics.Matrix()
+                transformMatrix.setScale(3f, 3f)
+                path.transform(transformMatrix)
+                paths.add(path)
+            } else {
+                println("Warning: Could not parse pathData: $pathData")
+            }
+        } catch (e: Exception) {
+            // PathParser can sometimes throw exceptions for malformed data
+            println("Error parsing pathData '$pathData': ${e.message}")
+        }
+    }
+    return paths
 }
 
 @Preview
