@@ -18,7 +18,7 @@ data class DrawingState(
     val composePaths: List<Path> = emptyList(),
     val userBounds: Rect? = null,
     val userStrokeWidth: Float = 5f,
-    val sampleStrokeWidth: Float = userStrokeWidth * 4f
+    val sampleStrokeWidth: Float = userStrokeWidth * 14f
 )
 
 data class PathData(

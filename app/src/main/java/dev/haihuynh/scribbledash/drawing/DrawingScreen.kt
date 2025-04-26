@@ -81,6 +81,7 @@ import kotlin.collections.first
 import kotlin.collections.isNotEmpty
 import kotlin.collections.lastIndex
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.get
 import androidx.core.graphics.transform
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -333,7 +334,8 @@ private fun DrawingCanvas(
             val canvasHeight = size.height
             val canvasWidth = size.width
 
-            val bounds = calculateBoundsWithStroke(samplePaths, sampleStrokeWidth)?.inset(sampleStrokeWidth / 2f)
+            val bounds = calculateBoundsWithStroke(samplePaths, sampleStrokeWidth)
+                ?.inset(sampleStrokeWidth / 4f)
             val sampleHeight = bounds!!.height
             val sampleWidth = bounds!!.width
             val scaleX = canvasWidth / sampleWidth
@@ -372,7 +374,8 @@ private fun DrawingCanvas(
                         )
                     }
 
-                    val sampleBounds = calculateBoundsWithStroke(samplePaths, sampleStrokeWidth)?.inset(sampleStrokeWidth / 2f)
+                    val sampleBounds = calculateBoundsWithStroke(samplePaths, sampleStrokeWidth)
+                        ?.inset(sampleStrokeWidth / 4f)
 
                     val sampleBitmap = createBitmap(canvasHeight.toInt(), canvasWidth.toInt())
                     val canvas = android.graphics.Canvas(sampleBitmap)
@@ -396,7 +399,7 @@ private fun DrawingCanvas(
                     }
 
                     val normalizedSample = sampleBounds!!.toAndroidRectF().transform(normalizedMatrix)
-                    canvas.drawRect(normalizedSample, redPaint)
+//                    canvas.drawRect(normalizedSample, redPaint)
 
                     samplePaths.fastForEach { samplePath ->
                         samplePath.transform(normalizedMatrix)
@@ -405,6 +408,14 @@ private fun DrawingCanvas(
 
                     coroutineScope.launch(Dispatchers.IO) {
                         saveBitmapToFile(context, "sample_drawing.png", sampleBitmap)
+                    }
+
+
+                    val userPaint = Paint().apply {
+                        color = android.graphics.Color.BLUE
+                        style = Paint.Style.STROKE
+                        strokeWidth = userStrokeWidth
+                        isAntiAlias = true
                     }
 
                     val userBitmap = createBitmap(canvasHeight.toInt(), canvasWidth.toInt())
@@ -421,22 +432,46 @@ private fun DrawingCanvas(
                         postScale(userScaleFactor, userScaleFactor, 0f, 0f)
                     }
                     val normalizedUserDrawing = userBounds!!.toAndroidRectF().transform(normalizedUserMatrix)
-                    userCanvas.drawRect(normalizedUserDrawing, redPaint)
+//                    userCanvas.drawRect(normalizedUserDrawing, redPaint)
 
                     paths.fastForEach { userPath ->
                         val path = getComposePath(userPath.path).asAndroidPath()
                         path.transform(normalizedUserMatrix)
-                        userCanvas.drawPath(path, bluePaint)
+                        userCanvas.drawPath(path, userPaint)
                     }
                     currentPath?.let { currentPath ->
                         val path = getComposePath(currentPath.path).asAndroidPath()
                         path.transform(normalizedUserMatrix)
-                        userCanvas.drawPath(path, bluePaint)
+                        userCanvas.drawPath(path, userPaint)
                     }
 
                     coroutineScope.launch(Dispatchers.IO) {
                         println("Saving user drawing")
                         saveBitmapToFile(context, "user_drawing.png", userBitmap)
+                    }
+
+                    var matchingUserPixelCount = 0
+                    var visibleUserPixelCount = 0
+                    var userBitmapPixels = IntArray(userBitmap.width * userBitmap.height)
+                    var sampleBitmapPixels = IntArray(sampleBitmap.width * sampleBitmap.height)
+                    userBitmap.getPixels(userBitmapPixels, 0, userBitmap.width, 0, 0, userBitmap.width, userBitmap.height)
+                    println("HAI_ bitmap height: ${userBitmap.height} -- width: ${userBitmap.width} -- bitmap size: ${userBitmap.width * userBitmap.height}")
+                    println("HAI_ bitmap array size: ${userBitmapPixels.size}")
+                    sampleBitmap.getPixels(sampleBitmapPixels, 0, sampleBitmap.width, 0, 0, sampleBitmap.width, sampleBitmap.height)
+
+
+                    coroutineScope.launch(Dispatchers.IO) {
+                        for (i in 0..userBitmapPixels.size - 1) {
+                            if (userBitmapPixels[i] != 0) {
+                                visibleUserPixelCount++
+                            }
+                            if (userBitmapPixels[i] != 0 && sampleBitmapPixels[i] != 0) {
+                                matchingUserPixelCount++
+                            }
+
+                        }
+                        println("HAI_ matching user pixels: $matchingUserPixelCount -- visible user pixels: $visibleUserPixelCount")
+                        println("HAI_ Coverage percentage: ${matchingUserPixelCount.toFloat() / visibleUserPixelCount}")
                     }
                 }
             }
@@ -548,10 +583,10 @@ fun calculateBoundsWithStroke(paths: List<android.graphics.Path>, strokeWidth: F
 
     // Expand the bounds to account for the stroke width
     return Rect(
-        left = minLeft - strokeWidthPx / 2f,
-        top = minTop - strokeWidthPx / 2f,
-        right = maxRight + strokeWidthPx / 2f,
-        bottom = maxBottom + strokeWidthPx / 2f
+        left = minLeft,
+        top = minTop,
+        right = maxRight,
+        bottom = maxBottom,
     )
 }
 
