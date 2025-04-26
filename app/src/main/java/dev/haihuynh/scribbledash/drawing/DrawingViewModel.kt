@@ -1,7 +1,10 @@
 package dev.haihuynh.scribbledash.drawing
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,7 +14,11 @@ data class DrawingState(
     val selectedColor: Color = Color.Black,
     val currentPath: PathData? = null,
     val paths: List<PathData> = emptyList(),
-    val undoPaths: List<PathData> = emptyList()
+    val undoPaths: List<PathData> = emptyList(),
+    val composePaths: List<Path> = emptyList(),
+    val userBounds: Rect? = null,
+    val userStrokeWidth: Float = 5f,
+    val sampleStrokeWidth: Float = userStrokeWidth * 4f
 )
 
 data class PathData(
@@ -28,11 +35,15 @@ sealed interface DrawingAction {
     data object OnUndo: DrawingAction
     data object OnRedo: DrawingAction
     data object OnClearCanvasClick: DrawingAction
+    data object OnCalculateUserBounds: DrawingAction
 }
 
 class DrawingViewModel: ViewModel() {
     private val _state = MutableStateFlow(DrawingState())
     val state = _state.asStateFlow()
+
+    val userStrokeWidth = state.value.userStrokeWidth
+    val sampleStrokeWidth = state.value.sampleStrokeWidth
 
     fun onAction(action: DrawingAction) {
         when(action) {
@@ -43,6 +54,18 @@ class DrawingViewModel: ViewModel() {
             DrawingAction.OnPathEnd -> onPathEnd()
             DrawingAction.OnRedo -> onRedo()
             DrawingAction.OnUndo -> onUndo()
+            DrawingAction.OnCalculateUserBounds -> {
+                val paths = state.value.paths.map { path ->
+                    getComposePath(path.path).asAndroidPath()
+                }
+                val additionalInset = ((sampleStrokeWidth - userStrokeWidth)/2f)
+                val userDrawingInsets = (userStrokeWidth/2f + additionalInset)
+                val userBounds = calculateBoundsWithStroke(paths, userStrokeWidth)
+                    ?.inset(userDrawingInsets)
+                _state.update {
+                    it.copy(userBounds = userBounds)
+                }
+            }
         }
     }
 
@@ -126,7 +149,8 @@ class DrawingViewModel: ViewModel() {
             it.copy(
                 currentPath = null,
                 paths = emptyList(),
-                undoPaths = emptyList()
+                undoPaths = emptyList(),
+                userBounds = null
             )
         }
     }
