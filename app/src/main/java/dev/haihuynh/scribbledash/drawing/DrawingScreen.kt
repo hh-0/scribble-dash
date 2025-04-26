@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -38,12 +37,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -68,7 +70,7 @@ fun DrawingScreenRoot(
     val context = LocalContext.current
 
     LaunchedEffect(null) {
-        viewModel.loadSampleDrawing(context = context, resourceId = R.drawable.book)
+        viewModel.loadSampleDrawing(context = context, resourceId = R.drawable.butterfly)
     }
 
     DrawingScreen(
@@ -195,6 +197,7 @@ private fun DrawingScreen(
                 DrawingCanvas(
                     paths = state.paths,
                     currentPath = state.currentPath,
+                    samplePaths = state.samplePaths.asComposePaths(),
                     onAction = onAction,
                     modifier = Modifier
                 )
@@ -203,10 +206,15 @@ private fun DrawingScreen(
     }
 }
 
+fun List<android.graphics.Path>.asComposePaths(): List<Path> {
+    return this.map { it.asComposePath() }
+}
+
 @Composable
 private fun DrawingCanvas(
     paths: List<PathData>,
     currentPath: PathData?,
+    samplePaths: List<Path>,
     onAction: (DrawingAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -282,8 +290,74 @@ private fun DrawingCanvas(
                     color = it.color
                 )
             }
+
+            val sampleDrawingBounds = getDrawingBounds(samplePaths)
+            sampleDrawingBounds?.let { bounds ->
+                val scaleX = size.width / bounds.width
+                val scaleY = size.height / bounds.height
+                val scaleFactor = minOf(scaleX, scaleY)
+
+                withTransform(
+                    {
+                        translate(
+                            (size.width - bounds.width * scaleFactor * 0.7f) / 2f,
+                            (size.height - bounds.height * scaleFactor * 0.7f) / 2f
+                        )
+                        scale(
+                            scaleFactor * 0.70f,
+                            scaleFactor * 0.70f,
+                            pivot = Offset(0f, 0f)
+                        )
+                        translate(
+                            left = -bounds.left,
+                            top = -bounds.top
+                        )
+                    }
+                ) {
+                    samplePaths.fastForEach { path ->
+                        drawPath(
+                            path = path,
+                            color = Color.Black,
+                            style = Stroke(
+                                width = 10f,
+                                cap = StrokeCap.Round,
+                                join = StrokeJoin.Round
+                            )
+                        )
+                    }
+                }
+
+            }
         }
     }
+}
+
+private fun getDrawingBounds(paths: List<Path>): Rect? {
+    if (paths.isEmpty()) {
+        return null
+    }
+
+    var minLeft = Float.POSITIVE_INFINITY
+    var minTop = Float.POSITIVE_INFINITY
+    var maxRight = Float.NEGATIVE_INFINITY
+    var maxBottom = Float.NEGATIVE_INFINITY
+
+    for (path in paths) {
+        val pathBounds = path.getBounds()
+        minLeft = minOf(minLeft, pathBounds.left)
+        minTop = minOf(minTop, pathBounds.top)
+        maxRight = maxOf(maxRight, pathBounds.right)
+        maxBottom = maxOf(maxBottom, pathBounds.bottom)
+    }
+
+    if (minLeft == Float.POSITIVE_INFINITY) return null // Handle empty paths case
+
+    return Rect(
+        left = minLeft,
+        top = minTop,
+        right = maxRight,
+        bottom = maxBottom,
+    )
 }
 
 private fun DrawScope.drawPath(
