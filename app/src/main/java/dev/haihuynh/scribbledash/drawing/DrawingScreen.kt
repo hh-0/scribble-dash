@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -31,6 +32,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +63,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.haihuynh.scribbledash.R
 import dev.haihuynh.scribbledash.components.GradientBackground
 import dev.haihuynh.scribbledash.components.ScribbleDashTopAppBarExitButton
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.abs
 
@@ -69,14 +75,22 @@ fun DrawingScreenRoot(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    var counter by remember { mutableIntStateOf(3) }
+
     LaunchedEffect(null) {
-        viewModel.loadSampleDrawing(context = context, resourceId = R.drawable.alien)
+        viewModel.loadSampleDrawing(context = context, resourceId = R.drawable.whale)
+        while (counter > 0) {
+            delay(1000)
+            counter--
+        }
+        viewModel.onAction(DrawingAction.OnReady)
     }
 
     DrawingScreen(
         state = state,
         onAction = viewModel::onAction,
-        onExit = onExit
+        onExit = onExit,
+        counter = counter
     )
 }
 
@@ -84,7 +98,8 @@ fun DrawingScreenRoot(
 private fun DrawingScreen(
     state: DrawingState,
     onAction: (DrawingAction) -> Unit = {},
-    onExit: () -> Unit = {}
+    onExit: () -> Unit = {},
+    counter: Int = 3
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -107,8 +122,43 @@ private fun DrawingScreen(
                 val isUndoButtonEnabled = state.paths.isNotEmpty()
                 val isRedoButtonEnabled = state.undoPaths.isNotEmpty()
                 val isDoneButtonEnabled = state.paths.isNotEmpty()
-                IconButton(
-                    modifier = Modifier
+                if (state.displaySample) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(64.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "$counter seconds left",
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                    }
+                } else {
+                    IconButton(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(
+                                color = if (isRedoButtonEnabled)
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                shape = RoundedCornerShape(24.dp)
+                            ),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f), // Color when enabled
+                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) // Color when disabled
+                        ),
+                        onClick = {
+                            onAction(DrawingAction.OnUndo)
+                        },
+                        enabled = isUndoButtonEnabled
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.undo_icon),
+                            contentDescription = null,
+                            alpha = if (isUndoButtonEnabled) 1f else 0.4f
+                        )
+                    }
+                    IconButton(modifier = Modifier
                         .size(64.dp)
                         .background(
                             color = if (isRedoButtonEnabled)
@@ -117,66 +167,43 @@ private fun DrawingScreen(
                                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                             shape = RoundedCornerShape(24.dp)
                         ),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f), // Color when enabled
-                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) // Color when disabled
-                    ),
-                    onClick = {
-                        onAction(DrawingAction.OnUndo)
-                    },
-                    enabled = isUndoButtonEnabled
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.undo_icon),
-                        contentDescription = null,
-                        alpha = if (isUndoButtonEnabled) 1f else 0.4f
-                    )
-                }
-                IconButton(modifier = Modifier
-                    .size(64.dp)
-                    .background(
-                        color = if (isRedoButtonEnabled)
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                        shape = RoundedCornerShape(24.dp)
-                    ),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    onClick = {
-                        onAction(DrawingAction.OnRedo)
-                    },
-                    enabled = isRedoButtonEnabled
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.redo_icon),
-                        contentDescription = null,
-                        alpha = if (isRedoButtonEnabled) 1f else 0.4f
-                    )
-                }
-                Button(
-                    modifier = Modifier.height(64.dp).weight(1f),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0DD280),
-                        contentColor = Color.White,
-                        disabledContentColor = Color.White.copy(alpha = 0.4f),
-                    ),
-                    border = BorderStroke(width = 6.dp, color = Color.White),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-                    onClick = { onAction(DrawingAction.OnDone) },
-                    enabled = isDoneButtonEnabled
-                ) {
-                    Text(
-                        text = "Done",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            color = Color.White,
-                            fontWeight = FontWeight.Normal,
-                            letterSpacing = 0.2f.sp
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        ),
+                        onClick = {
+                            onAction(DrawingAction.OnRedo)
+                        },
+                        enabled = isRedoButtonEnabled
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.redo_icon),
+                            contentDescription = null,
+                            alpha = if (isRedoButtonEnabled) 1f else 0.4f
                         )
-                    )
+                    }
+                    Button(
+                        modifier = Modifier.height(64.dp).weight(1f),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF0DD280),
+                            contentColor = Color.White,
+                            disabledContentColor = Color.White.copy(alpha = 0.4f),
+                        ),
+                        border = BorderStroke(width = 6.dp, color = Color.White),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                        onClick = { onAction(DrawingAction.OnDone) },
+                        enabled = isDoneButtonEnabled
+                    ) {
+                        Text(
+                            text = "Done",
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                color = Color.White,
+                                fontWeight = FontWeight.Normal,
+                                letterSpacing = 0.2f.sp
+                            )
+                        )
+                    }
                 }
             }
 
@@ -191,12 +218,13 @@ private fun DrawingScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Time to draw!",
+                    text = if (state.displaySample) "Ready, set..." else "Time to draw!",
                     style = MaterialTheme.typography.headlineLarge
                 )
                 DrawingCanvas(
                     paths = state.paths,
                     currentPath = state.currentPath,
+                    displaySample = state.displaySample,
                     samplePaths = state.samplePaths.asComposePaths(),
                     onAction = onAction,
                     modifier = Modifier
@@ -214,6 +242,7 @@ fun List<android.graphics.Path>.asComposePaths(): List<Path> {
 private fun DrawingCanvas(
     paths: List<PathData>,
     currentPath: PathData?,
+    displaySample: Boolean,
     samplePaths: List<Path>,
     onAction: (DrawingAction) -> Unit,
     modifier: Modifier = Modifier
@@ -291,42 +320,44 @@ private fun DrawingCanvas(
                 )
             }
 
-            val sampleDrawingBounds = getDrawingBounds(samplePaths)
-            sampleDrawingBounds?.let { bounds ->
-                val scaleX = size.width / bounds.width
-                val scaleY = size.height / bounds.height
-                val scaleFactor = minOf(scaleX, scaleY)
+            if (displaySample) {
+                val sampleDrawingBounds = getDrawingBounds(samplePaths)
+                sampleDrawingBounds?.let { bounds ->
+                    val scaleX = size.width / bounds.width
+                    val scaleY = size.height / bounds.height
+                    val scaleFactor = minOf(scaleX, scaleY)
 
-                withTransform(
-                    {
-                        translate(
-                            (size.width - bounds.width * scaleFactor * 0.7f) / 2f,
-                            (size.height - bounds.height * scaleFactor * 0.7f) / 2f
-                        )
-                        scale(
-                            scaleFactor * 0.70f,
-                            scaleFactor * 0.70f,
-                            pivot = Offset(0f, 0f)
-                        )
-                        translate(
-                            left = -bounds.left,
-                            top = -bounds.top
-                        )
-                    }
-                ) {
-                    samplePaths.fastForEach { path ->
-                        drawPath(
-                            path = path,
-                            color = Color.Black,
-                            style = Stroke(
-                                width = 10f,
-                                cap = StrokeCap.Round,
-                                join = StrokeJoin.Round
+                    withTransform(
+                        {
+                            translate(
+                                (size.width - bounds.width * scaleFactor * 0.7f) / 2f,
+                                (size.height - bounds.height * scaleFactor * 0.7f) / 2f
                             )
-                        )
+                            scale(
+                                scaleFactor * 0.70f,
+                                scaleFactor * 0.70f,
+                                pivot = Offset(0f, 0f)
+                            )
+                            translate(
+                                left = -bounds.left,
+                                top = -bounds.top
+                            )
+                        }
+                    ) {
+                        samplePaths.fastForEach { path ->
+                            drawPath(
+                                path = path,
+                                color = Color.Black,
+                                style = Stroke(
+                                    width = 10f,
+                                    cap = StrokeCap.Round,
+                                    join = StrokeJoin.Round
+                                )
+                            )
+                        }
                     }
-                }
 
+                }
             }
         }
     }

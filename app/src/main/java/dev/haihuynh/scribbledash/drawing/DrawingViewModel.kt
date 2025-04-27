@@ -20,7 +20,8 @@ data class DrawingState(
     val currentPath: PathData? = null,
     val paths: List<PathData> = emptyList(),
     val undoPaths: List<PathData> = emptyList(),
-    val samplePaths: List<Path> = emptyList()
+    val samplePaths: List<Path> = emptyList(),
+    val displaySample: Boolean = true
 )
 
 data class PathData(
@@ -37,6 +38,7 @@ sealed interface DrawingAction {
     data object OnUndo: DrawingAction
     data object OnRedo: DrawingAction
     data object OnDone: DrawingAction
+    data object OnReady: DrawingAction
 }
 
 class DrawingViewModel: ViewModel() {
@@ -52,6 +54,7 @@ class DrawingViewModel: ViewModel() {
             DrawingAction.OnPathEnd -> onPathEnd()
             DrawingAction.OnRedo -> onRedo()
             DrawingAction.OnUndo -> onUndo()
+            DrawingAction.OnReady -> onReady()
         }
     }
 
@@ -135,6 +138,14 @@ class DrawingViewModel: ViewModel() {
                 currentPath = null,
                 paths = emptyList(),
                 undoPaths = emptyList()
+            )
+        }
+    }
+
+    private fun onReady() {
+        _state.update {
+            it.copy(
+                displaySample = false
             )
         }
     }
