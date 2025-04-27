@@ -36,7 +36,7 @@ sealed interface DrawingAction {
     data class OnColorSelected(val color: Color): DrawingAction
     data object OnUndo: DrawingAction
     data object OnRedo: DrawingAction
-    data object OnClearCanvasClick: DrawingAction
+    data object OnDone: DrawingAction
 }
 
 class DrawingViewModel: ViewModel() {
@@ -45,7 +45,7 @@ class DrawingViewModel: ViewModel() {
 
     fun onAction(action: DrawingAction) {
         when(action) {
-            DrawingAction.OnClearCanvasClick -> onClearCanvasClick()
+            DrawingAction.OnDone -> onDone()
             is DrawingAction.OnColorSelected -> onColorSelected(action.color)
             is DrawingAction.OnDraw -> onDraw(action.offset)
             DrawingAction.OnNewPathStart -> onNewPathStart()
@@ -129,7 +129,7 @@ class DrawingViewModel: ViewModel() {
 
     }
 
-    private fun onClearCanvasClick() {
+    private fun onDone() {
         _state.update {
             it.copy(
                 currentPath = null,
