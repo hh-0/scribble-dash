@@ -90,7 +90,8 @@ fun DrawingScreenRoot(
         state = state,
         onAction = viewModel::onAction,
         onExit = onExit,
-        counter = counter
+        counter = counter,
+        onCanvasSetUp = viewModel::setUpCanvas
     )
 }
 
@@ -99,7 +100,8 @@ private fun DrawingScreen(
     state: DrawingState,
     onAction: (DrawingAction) -> Unit = {},
     onExit: () -> Unit = {},
-    counter: Int = 3
+    counter: Int = 3,
+    onCanvasSetUp: (Int, Int) -> Unit
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -124,7 +126,9 @@ private fun DrawingScreen(
                 val isDoneButtonEnabled = state.paths.isNotEmpty()
                 if (state.displaySample) {
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(64.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -183,7 +187,9 @@ private fun DrawingScreen(
                         )
                     }
                     Button(
-                        modifier = Modifier.height(64.dp).weight(1f),
+                        modifier = Modifier
+                            .height(64.dp)
+                            .weight(1f),
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF0DD280),
@@ -211,7 +217,8 @@ private fun DrawingScreen(
     ) { innerPadding ->
         GradientBackground {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(innerPadding)
                     .padding(bottom = 64.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -227,6 +234,7 @@ private fun DrawingScreen(
                     displaySample = state.displaySample,
                     samplePaths = state.samplePaths.asComposePaths(),
                     onAction = onAction,
+                    onCanvasSetUp = onCanvasSetUp,
                     modifier = Modifier
                 )
             }
@@ -245,6 +253,7 @@ private fun DrawingCanvas(
     displaySample: Boolean,
     samplePaths: List<Path>,
     onAction: (DrawingAction) -> Unit,
+    onCanvasSetUp: (Int, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -261,7 +270,11 @@ private fun DrawingCanvas(
                 .padding(12.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .clipToBounds()
-                .border(width = 1.dp, color = Color.Black.copy(alpha = 0.05f), shape = RoundedCornerShape(16.dp))
+                .border(
+                    width = 1.dp,
+                    color = Color.Black.copy(alpha = 0.05f),
+                    shape = RoundedCornerShape(16.dp)
+                )
                 .background(Color.White)
                 .pointerInput(true) {
                     detectDragGestures(
@@ -275,7 +288,8 @@ private fun DrawingCanvas(
                             onAction(DrawingAction.OnDraw(change.position))
                         },
                     )
-                }.drawBehind {
+                }
+                .drawBehind {
                     val cellWidth = size.width / 3
                     val cellHeight = size.height / 3
 
@@ -307,6 +321,9 @@ private fun DrawingCanvas(
                     )
                 }
         ) {
+            // TODO: Refactor this getting width and height of canvas
+            onCanvasSetUp(size.width.toInt(), size.height.toInt())
+
             paths.fastForEach { pathData ->
                 drawPath(
                     path = pathData.path,
@@ -363,7 +380,7 @@ private fun DrawingCanvas(
     }
 }
 
-private fun getDrawingBounds(paths: List<Path>): Rect? {
+internal fun getDrawingBounds(paths: List<Path>): Rect? {
     if (paths.isEmpty()) {
         return null
     }
@@ -433,6 +450,10 @@ private fun DrawScope.drawPath(
 @Composable
 private fun DrawingScreenPreview() {
     DrawingScreen(
-        state = DrawingState()
+        state = DrawingState(),
+        onAction = { },
+        onExit = {},
+        counter = 3,
+        onCanvasSetUp = { _, _ -> }
     )
 }
