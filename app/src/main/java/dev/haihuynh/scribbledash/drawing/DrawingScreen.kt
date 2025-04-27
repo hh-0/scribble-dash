@@ -166,7 +166,7 @@ private fun DrawingScreen(
                     ),
                     border = BorderStroke(width = 6.dp, color = Color.White),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-                    onClick = { onAction(DrawingAction.OnClearCanvasClick) },
+                    onClick = { onAction(DrawingAction.OnDone) },
                     enabled = isDoneButtonEnabled
                 ) {
                     Text(
