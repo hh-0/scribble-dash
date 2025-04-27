@@ -70,7 +70,7 @@ fun DrawingScreenRoot(
     val context = LocalContext.current
 
     LaunchedEffect(null) {
-        viewModel.loadSampleDrawing(context = context, resourceId = R.drawable.butterfly)
+        viewModel.loadSampleDrawing(context = context, resourceId = R.drawable.alien)
     }
 
     DrawingScreen(
@@ -106,7 +106,7 @@ private fun DrawingScreen(
             ) {
                 val isUndoButtonEnabled = state.paths.isNotEmpty()
                 val isRedoButtonEnabled = state.undoPaths.isNotEmpty()
-                val isClearCanvasButtonEnabled = state.paths.isNotEmpty()
+                val isDoneButtonEnabled = state.paths.isNotEmpty()
                 IconButton(
                     modifier = Modifier
                         .size(64.dp)
@@ -167,10 +167,10 @@ private fun DrawingScreen(
                     border = BorderStroke(width = 6.dp, color = Color.White),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
                     onClick = { onAction(DrawingAction.OnClearCanvasClick) },
-                    enabled = isClearCanvasButtonEnabled
+                    enabled = isDoneButtonEnabled
                 ) {
                     Text(
-                        text = "CLEAR CANVAS",
+                        text = "Done",
                         style = MaterialTheme.typography.headlineSmall.copy(
                             color = Color.White,
                             fontWeight = FontWeight.Normal,
