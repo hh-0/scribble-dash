@@ -2,6 +2,8 @@ package dev.haihuynh.scribbledash.drawing
 
 import android.content.Context
 import android.content.res.XmlResourceParser
+import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import androidx.annotation.DrawableRes
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
@@ -47,7 +50,7 @@ sealed interface DrawingAction {
     data class OnColorSelected(val color: Color): DrawingAction
     data object OnUndo: DrawingAction
     data object OnRedo: DrawingAction
-    data object OnDone: DrawingAction
+    data class OnDone(val onDone: () -> Unit): DrawingAction
     data object OnReady: DrawingAction
 }
 
@@ -86,7 +89,7 @@ class DrawingViewModel: ViewModel() {
 
     fun onAction(action: DrawingAction) {
         when(action) {
-            DrawingAction.OnDone -> onDone(state.value.canvasWidth, state.value.canvasHeight)
+            is DrawingAction.OnDone -> onDone(state.value.canvasWidth, state.value.canvasHeight, action.onDone)
             is DrawingAction.OnColorSelected -> onColorSelected(action.color)
             is DrawingAction.OnDraw -> onDraw(action.offset)
             DrawingAction.OnNewPathStart -> onNewPathStart()
@@ -171,7 +174,7 @@ class DrawingViewModel: ViewModel() {
 
     }
 
-    private fun onDone(canvasWidth: Int, canvasHeight: Int) {
+    private fun onDone(canvasWidth: Int, canvasHeight: Int, onDone: () -> Unit) {
         val sampleBounds = getDrawingBounds(state.value.samplePaths.asComposePaths())
         if (sampleBounds == null) {
             return // This should not happen, but just in case, we can ask user to try again
@@ -183,7 +186,7 @@ class DrawingViewModel: ViewModel() {
         }
 
         val sampleBitmap = createBitmap(canvasWidth, canvasHeight)
-        val sampleCanvas = android.graphics.Canvas(sampleBitmap)
+        val sampleCanvas = Canvas(sampleBitmap)
         val sampleScaleX = canvasWidth / sampleBounds.width
         val sampleScaleY = canvasHeight / sampleBounds.height
         val sampleScaleFactor = minOf(sampleScaleX, sampleScaleY)
@@ -193,7 +196,7 @@ class DrawingViewModel: ViewModel() {
             strokeWidth = 20f
         }
 
-        val sampleNormalizationMatrix = android.graphics.Matrix().apply {
+        val sampleNormalizationMatrix = Matrix().apply {
             setTranslate(-sampleBounds.left, -sampleBounds.top)
             postScale(sampleScaleFactor, sampleScaleFactor, 0f, 0f)
         }
@@ -204,7 +207,7 @@ class DrawingViewModel: ViewModel() {
         }
 
         val userBitmap = createBitmap(canvasWidth, canvasHeight)
-        val userCanvas = android.graphics.Canvas(userBitmap)
+        val userCanvas = Canvas(userBitmap)
         val userScaleX = canvasWidth / userBounds.width
         val userScaleY = canvasHeight / userBounds.height
         val userScaleFactor = minOf(userScaleX, userScaleY)
@@ -213,7 +216,7 @@ class DrawingViewModel: ViewModel() {
             style = Paint.Style.STROKE
             strokeWidth = 10f
         }
-        val userNormalizationMatrix = android.graphics.Matrix().apply {
+        val userNormalizationMatrix = Matrix().apply {
             setTranslate(-userBounds.left, -userBounds.top)
             postScale(userScaleFactor, userScaleFactor, 0f, 0f)
         }
@@ -241,14 +244,20 @@ class DrawingViewModel: ViewModel() {
                     matchingUserPixelCount++
                 }
             }
-        }
-
-        _state.update {
-            it.copy(
-                currentPath = null,
-                paths = emptyList(),
-                undoPaths = emptyList()
-            )
+            val accuracy = matchingUserPixelCount * 100 / visibleUserPixelCount
+            DrawingsCache.sampleDrawing = state.value.samplePaths.asComposePaths()
+            DrawingsCache.userDrawing = state.value.paths.asComposePaths()
+            DrawingsCache.accuracy = accuracy
+            withContext(Dispatchers.Main) {
+                onDone()
+            }
+            _state.update {
+                it.copy(
+                    currentPath = null,
+                    paths = emptyList(),
+                    undoPaths = emptyList()
+                )
+            }
         }
     }
 
@@ -312,7 +321,7 @@ class DrawingViewModel: ViewModel() {
             try {
                 val path = PathParser.createPathFromPathData(pathData)
                 if (path != null) {
-                    val transformMatrix = android.graphics.Matrix()
+                    val transformMatrix = Matrix()
                     transformMatrix.setScale(3f, 3f)
                     path.transform(transformMatrix)
                     paths.add(path)

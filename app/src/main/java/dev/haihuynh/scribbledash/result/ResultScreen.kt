@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -32,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.haihuynh.scribbledash.components.GradientBackground
 import dev.haihuynh.scribbledash.components.ScribbleDashTopAppBarExitButton
+import dev.haihuynh.scribbledash.drawing.DrawingsCache
 import dev.haihuynh.scribbledash.drawing.SampleCanvas
 
 @Composable
@@ -39,8 +38,8 @@ fun ResultScreenRoot(
     onExit: () -> Unit = {}
 ) {
     ResultScreen(
-        userDrawing = listOf(),
-        sampleDrawing = listOf()
+        userDrawing = DrawingsCache.userDrawing,
+        sampleDrawing = DrawingsCache.sampleDrawing,
     )
 }
 
@@ -139,7 +138,7 @@ private fun ResultScreen(
                             fontWeight = FontWeight.W600
                         )
                         SampleCanvas(
-                            samplePaths = sampleDrawing,
+                            samplePaths = userDrawing,
                             modifier = Modifier
                         )
                     }

@@ -51,6 +51,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun DrawingScreenRoot(
     onExit: () -> Unit = {},
+    onDone: () -> Unit = {},
     viewModel: DrawingViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -71,6 +72,7 @@ fun DrawingScreenRoot(
         state = state,
         onAction = viewModel::onAction,
         onExit = onExit,
+        onDone = onDone,
         counter = counter,
         onCanvasSetUp = viewModel::setUpCanvas
     )
@@ -81,6 +83,7 @@ private fun DrawingScreen(
     state: DrawingState,
     onAction: (DrawingAction) -> Unit = {},
     onExit: () -> Unit = {},
+    onDone: () -> Unit = {},
     counter: Int = 3,
     onCanvasSetUp: (Int, Int) -> Unit
 ) {
@@ -179,7 +182,7 @@ private fun DrawingScreen(
                         ),
                         border = BorderStroke(width = 6.dp, color = Color.White),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-                        onClick = { onAction(DrawingAction.OnDone) },
+                        onClick = { onAction(DrawingAction.OnDone(onDone)) },
                         enabled = isDoneButtonEnabled
                     ) {
                         Text(
