@@ -61,6 +61,12 @@ val Typography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         color = Color(0xFF514437)
+    ),
+    titleSmall = TextStyle(
+        fontFamily = OutFit,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        color = Color(0xFF514437)
     )
     /* Other default text styles to override
     titleLarge = TextStyle(
