@@ -12,6 +12,7 @@ import androidx.core.graphics.PathParser
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.haihuynh.scribbledash.components.getDrawingBounds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -239,7 +240,6 @@ class DrawingViewModel: ViewModel() {
                 if (userBitmapPixels[i] != 0 && sampleBitmapPixels[i] != 0) {
                     matchingUserPixelCount++
                 }
-
             }
         }
 
